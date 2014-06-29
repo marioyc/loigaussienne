@@ -1,6 +1,12 @@
 clear;
 clf;
 
+n = 256;
+r = 3.6541528853610088;
+v = 0.004928673233;
+
+N = 50000;
+
 function [y] = f(x)
     y = exp(-x^2 / 2)
 endfunction
@@ -18,11 +24,17 @@ function [y] = tail(r)
     end
 endfunction
 
-n = 256;
-x = zeros(1,n + 1);
+function[y] = signe()
+    s = grand(1,1,"uin",0,1);
+    
+    if s == 0 then
+        y = -1
+    else
+        y = 1
+    end
+endfunction
 
-r = 3.6541528853610088;
-v = 0.004928673233;
+x = zeros(1,n + 1);
 x(1,n) = r;
 
 for i = 1:n - 2
@@ -37,12 +49,6 @@ end
 
 k(1,n + 1) = r * f(r) / v;
 
-//disp(x(1,n - 1));
-//disp(x(1,2));
-//disp(x(1,1));
-
-N = 50000;
-
 res = zeros(1,N);
 pos = 1;
 
@@ -52,35 +58,16 @@ while pos <= N do
     X = U * x(1,v);
     
     if(U < k(1,v))
-        s = grand(1,1,"uin",0,1);
-        
-        if s == 0 then
-            X = -X;
-        end
-        
-        res(1, pos) = X;
+        res(1, pos) = X * signe();
         pos = pos + 1;
     else
         U2 = grand(1,1,"def");
         
         if(v == n)
-            X = tail(r);
-            s = grand(1,1,"uin",0,1);
-            
-            if s == 0 then
-                X = -X;
-            end
-            
-            res(1, pos) = X;
+            res(1, pos) = tail(r) * signe();
             pos = pos + 1;
         elseif(f(x(1, v)) + (f(x(1, v)) - f(x(1,v)) * U2 < f(X)))
-            s = grand(1,1,"uin",0,1);
-            
-            if s == 0 then
-                X = -X;
-            end
-            
-            res(1,pos) = X;
+            res(1,pos) = X * signe();
             pos = pos + 1;
         end
     end
