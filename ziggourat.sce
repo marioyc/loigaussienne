@@ -35,40 +35,42 @@ function[y] = signe()
 endfunction
 
 x = zeros(1,n + 1);
-x(1,n) = r;
+x(1,n + 1) = r;
 
-for i = 1:n - 2
-    x(1,n - i) = sqrt(-2 * log(v / x(1,n - i + 1) + f(x(1,n - i + 1))));
+for i = 1:n - 1
+    x(1,n - i + 1) = sqrt(-2 * log(v / x(1,n - i + 2) + f(x(1,n - i + 2))));
 end
 
-k = zeros(1,n + 1);
+k = zeros(1,n);
 
-for i = 2:n
-    k(1,i) = x(1,i - 1) / x(1,i);
+for i = 1:n - 1
+    k(1,i) = x(1,i) / x(1,i + 1);
 end
 
-k(1,n + 1) = r * f(r) / v;
+k(1,n) = r * f(r) / v;
 
 res = zeros(1,N);
 pos = 1;
 
 while pos <= N do
     U = grand(1,1,"def");
-    v = grand(1,1,"uin",2,n + 1);
+    v = grand(1,1,"uin",1,n);
     X = U * x(1,v);
     
     if(U < k(1,v))
         res(1, pos) = X * signe();
         pos = pos + 1;
     else
-        U2 = grand(1,1,"def");
-        
         if(v == n)
             res(1, pos) = tail(r) * signe();
             pos = pos + 1;
-        elseif(f(x(1, v)) + (f(x(1, v)) - f(x(1,v)) * U2 < f(X)))
-            res(1,pos) = X * signe();
-            pos = pos + 1;
+        else
+            U2 = grand(1,1,"def");
+            
+            if(f(x(1, v)) + (f(x(1, v)) - f(x(1,v)) * U2 < f(X)))
+                res(1,pos) = X * signe();
+                pos = pos + 1;
+            end
         end
     end
 end
