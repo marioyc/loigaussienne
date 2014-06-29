@@ -1,11 +1,15 @@
 clear;
 clf;
+stacksize(30000000);
 
 n = 256;
 r = 3.6541528853610088;
 v = 0.004928673233;
 
-N = 50000;
+N = 10000000;
+p=round(sqrt(N));
+
+tic();
 
 function [y] = f(x)
     y = exp(-x^2 / 2)
@@ -41,6 +45,8 @@ for i = 1:n - 1
     x(1,n - i + 1) = sqrt(-2 * log(v / x(1,n - i + 2) + f(x(1,n - i + 2))));
 end
 
+y = exp(-x.^2 / 2);
+
 k = zeros(1,n);
 
 for i = 1:n - 1
@@ -67,7 +73,7 @@ while pos <= N do
         else
             U2 = grand(1,1,"def");
             
-            if(f(x(1, v)) + (f(x(1, v)) - f(x(1,v)) * U2 < f(X)))
+            if(y(1,v + 1) + (y(1,v) - y(1,v + 1)) * U2 < f(X))
                 res(1,pos) = X * signe();
                 pos = pos + 1;
             end
@@ -75,7 +81,7 @@ while pos <= N do
     end
 end
 
-p=round(sqrt(N));
+disp(toc(),'Methode Ziggourat, time = ');
 
 x=linspace(-5,5,10000);
 
