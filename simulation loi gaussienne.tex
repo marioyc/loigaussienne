@@ -1,0 +1,311 @@
+\documentclass[a4paper]{article}
+
+\usepackage[english]{babel}
+\usepackage[utf8]{inputenc}
+\usepackage{amsmath}
+\usepackage{amssymb}
+\usepackage{graphicx}
+\usepackage{enumerate}
+\usepackage[colorinlistoftodos]{todonotes}
+
+\title{Simulation rapide de la loi Gaussienne}
+
+\author{Projet pour le cours "Al\'eatoire" Map311
+\\propos\'e par Stefano De Marco demarco\@cmap.polytechnique.fr}
+
+\date{\today}
+
+\begin{document}
+\maketitle
+
+On se propose d'\'etudier et comparer deux m\'ethodes diff\'erentes de simulation de la loi Gaussienne.
+
+\section{Un tour d'horizon}
+
+\subsection{M\'ethode de Box-M\"uller}
+
+La m\'ethode de Box-M\"uller est une technique repandue pour la simulation de gaussiennes bivari\'ees. Soit $U$ et $V$ deux variables uniformes sur $[0,1]$ ind\'ependantes.
+\begin{enumerate}
+\item Quelle est la loi de $Z = -\frac{1}{\lambda}\ln(U)$, pour $\lambda>0$?
+
+Soit $h$ une fonction continu\'ee et born\'ee, alors
+$$\mathbb{E}(h(Z)) = \int_{\mathbb{R}}h(-\frac{1}{\lambda}\ln(u))f_U(u)\,du = \int_{\mathbb{R}}h(-\frac{1}{\lambda}\ln(u))\mathbf{1}_{[0,1]}(u)\,du = \int_{\mathbb{R}}h(v)\lambda e^{-\lambda v}\mathbf{1}_{\{v>0\}}(v)\,dv$$
+En le dernier pas on a utilic\'e le changement de variable $v = -\frac{1}{\lambda}\ln(u)$.
+\\On conclude que $f_Z(z) = \lambda e^{-\lambda z}\mathbf{1}_{\{z>0\}}$, i.e. $Z\sim {\cal E}(\lambda)$.
+
+\item Soit $R$ une variable al\'eatoire exponentielle de param\`etre $1/2$ et $\Theta$ une variable al\'eatoire uniforme sur $[0,2\pi]$ ind\'ependantes. Quelle est la loi de $(X,Y) = (\sqrt{R}\cos(\Theta),\sqrt{R}\sin(\Theta))$? D\'etaillez votre r\'eponse.
+
+Soit $h$ une fonction continu\'ee et born\'ee, alors
+\begin{align*}
+\mathbb{E}(h(X,Y)) &\underbrace{=}_{indep} \int_{\mathbb{R}^2}h(\sqrt{r}\cos(\theta),\sqrt{r}\sin(\theta))f_R(r)f_{\Theta}(\theta)\,d(r,\theta)\\
+&= \int_{\mathbb{R}^2}h(\sqrt{r}\cos(\theta),\sqrt{r}\sin(\theta))\frac{1}{2}e^{-r/2}\mathbf{1}_{\{r>0\}}(r)\frac{\mathbf{1}_{[0,2\pi](\theta)}}{2\pi}\,d(r,\theta)
+\intertext{On fait le changement de variables $(u,v) = (\sqrt{r}\cos(\theta),\sqrt{r}\sin(\theta))$, donc $|\frac{\partial(r,\theta)}{\partial(u,v)}| = 2$ et}
+&= \int_{\mathbb{R}^2}h(u,v)e^{-(u^2+v^2)/2}\frac{1}{2\pi}\,d(u,v)
+\end{align*}
+On a que $f_{XY}(x,y) = \frac{1}{2\pi}e^{-(x^2+y^2)/2}$
+
+
+\item En d\'eduire un m\'ethode de simulation d'un couple de gaussiennes centr\'ees r\'eduites ind\'ependantes \`a partir du tirage d'un couple de variables uniformes sur $[0,1]$ ind\'ependantes.
+
+Soit $N_1,N_2\stackrel{iid}{\sim}{\cal N}(0,1)$, alors 
+$$f_{N_1N_2}(x,y) \underbrace{=}_{indep} f_{N_1}(x)f_{N_2}(y) = \frac{1}{2\pi}e^{-(x^2+y^2)/2} $$
+Donc on doit simuler $U_1,U_2\stackrel{iid}{\sim}{\cal U}([0,1])$. Si on d\'efine 
+\begin{align*}
+R &= -2\ln(U_1)\sim{\cal E}(1/2)\\
+\Theta &= 2\pi U_2 \sim {\cal U}([0,2\pi])
+\end{align*} 
+On a que $(N_1,N_2) = (\sqrt{R}\cos(\Theta),\sqrt{R}\sin(\Theta))\sim({\cal N}(0,1),{\cal N}(0,1))$ et $N_1\perp N_2$.
+
+\end{enumerate}
+
+\subsection{Le cas d'une densit\'e \`a support compact : la m\'ethode du rejet}
+
+Soit $f$ une fonction mesurable positive et int\'egrable sur un intervalle $[a,b]$, $-\infty<a<b<\infty$. L'algorithme de rejet est construit \`a partir d'une suite $(X_i,Y_i)_{i\geq1}$ de couples al\'eatoires i.i.d. o\`u les $X_i$ sont uniform\'ement r\'eparties sur $[a,b]$. De plus, on suppose qu'il existe un ensemble d'acceptation ${\cal C}\in \mathbb{R}^2$ tel que $\mathbb{P}((X_1,Y_1)\in {\cal C})>0$ et que la loi conditionnelle de $X_1$ sachant $(X_1,Y_1)\in{\cal C}$ poss\`ede la densit\'e $cf$, o\`u $c$ est la constante de normalization qui rend $cf$ une densit\'e de probabilit\'e. On note $N = \min\{i\geq1\,:\,(X_i,Y_i)\in{\cal C}\}$.
+
+\begin{enumerate}
+\item Quelle est la loi de $N$?
+
+Si on d\'efine $p = \mathbb{P}((X_1,Y_1)\in{\cal C})$, on a que pour $n\in\mathbb{N}$
+$$\mathbb{P}(N=n) = \mathbb{P}\left(\bigcap\limits_{i=1}^{n-1}\{(X_i,Y_i)\not\in{\cal C}\}\cap \{(X_n,Y_n)\in{\cal C}\}\right) \stackrel{iid}{=} p(1-p)^{n-1}$$
+Alors, $N\sim Geo(p)$
+
+
+\item Montrer que la variable al\'eatoire $X_N$ est distribu\'ee selon la densit\'e $cf$. En d\'eduire une m\'ethode de simulation de la loi de densit\'e $cf$.
+
+\begin{align*}
+\mathbb{P}(X_N<x) &= \sum\limits_{n\geq1}\mathbb{P}(\{X_N<x\} \cap \{N=n\})\\&= \sum\limits_{n\geq1}\mathbb{P}(\{X_n<x\} \cap \{N=n\})\\&= \mathbb{P}(\{X_1<x\}\cap\{(X_1,Y_1)\in{\cal C}\} + \sum\limits_{n\geq2}\mathbb{P}\left(\{X_n<x\} \cap \bigcap\limits_{i=1}^{n-1}\{(X_i,Y_i)\not\in{\cal C}\}\cap\{(X_n,Y_n)\in{\cal C}\}\right)\\&\stackrel{iid}{=}\mathbb{P}(X_1<x|(X_1,Y_1)\in{\cal C})p + \sum\limits_{n\geq2}\mathbb{P}(X_1<x|(X_1,Y_1)\in{\cal C})p(1-p)^{n-1}\\&= \mathbb{P}(X_1<x|(X_1,Y_1)\in{\cal C})\underbrace{\sum\limits_{n\geq1}p(1-p)^n}_{1}\\&\stackrel{hip}{=}\int_{-\infty}^x cf(t)\mathbf{1}_{[a,b]}(t)\,dt
+\end{align*}
+
+
+
+\end{enumerate}
+Dans un cadre d'application typique de la m\'ethode, $f$ est une fonction born\'ee. Soit $m:=\sup_{x\in[a,b]}f(x)<\infty$. Soit $X$ une variable uniforme sur $[a,b]$ et $Y$ une variable uniforme sur $[0,M]$, $M\geq m$, ind\'ependante de $X$.
+
+\begin{enumerate}
+\item[3.] Montrer que la condition d'acceptation est satisfaite pour l'ensemble ${\cal C} = \{(x,y)\,:\,x\in[a,b]\,,\,f(x)>y\}$. En d\'eduire que la loi de $X$ sachant $(X,Y)\in{\cal C}$ a densit\'e $cf$.
+
+La probabilit\'e $\mathbb{P}((X,Y)\in{\cal C})>0$, car
+$$\mathbb{P}((X,Y)\in{\cal C})= \mathbb{P}(Y<f(X))$$
+Si on pose $Y = MU$ o\`u $U\sim{\cal U}([0,1])$ on a
+\begin{align*}
+\mathbb{P}(Y<f(X)) &= \mathbb{P}(U< f(X)/M)\\
+&= \int_{\mathbb{R}}\mathbb{P}(U<f(X)/M\,|\,X=x)f_X(x)\,dx\\
+&= \frac{1}{b-a}\int_a^b\mathbb{P}(U<f(x)/M)\,dx\\
+&= \frac{1}{M(b-a)}\underbrace{\int_a^bf(x)\,dx}_{1/c}\\
+&> 0
+\end{align*}
+Aussi
+$$\mathbb{P}(X\leq x |(X,Y)\in{\cal C}) = \frac{\mathbb{P}(\{X\leq x\}\cap\{Y\leq f(X)\})}{\mathbb{P}(Y\leq f(X))}$$
+Et
+\begin{align*}
+\mathbb{P}(\{X\leq x\}\cap\{Y\leq f(X)\}) &= \int_{\mathbb{R}}\mathbb{P}(\{X\leq x\}\cap \{Y\leq f(X)\}\,|\,X=z)f_X(z)\,dz\\
+&= \frac{1}{b-a}\int_a^b\mathbb{P}(\{z\leq x\}\cap \{Y\leq f(z)\})\,dz\\
+&= \frac{1}{b-a}\int_a^x\mathbb{P}(Y\leq f(z))\,dz\\
+&= \frac{1}{M(b-a)}\int_a^xf(z)\,dz
+\end{align*}
+Alors $$\mathbb{P}(X\leq x|(X,Y)\in{\cal C}) = \int_a^xcf(z)\,dz$$
+On conclude que la densit\'e de $\{X|(X,Y)\in{\cal C}\}$ est $cf$
+
+
+\item[4.] En d\'eduire une m\'ethode de simulation de la loi de densit\'e $cf$ \`a partir de la simulation de v.a. uniformes sur $[0,1]$. Quelle valeur de $M$ aurez-vous int\'er\^et \`a choisir pour am\'eliorer le taux d'acceptation?
+
+\begin{align*}
+\textbf{Generer } U_1,U_2\stackrel{iid}{\sim}{\cal U}([0,1])\,;\\
+\textbf{Definir } X = a+(b-a)U_1\\ \textbf{ et } Y = MU_2\,;\\
+\textbf{Repetir jusqu'\`a } Y\leq f(X)\,;\\
+\textbf{Retourner } X;
+\end{align*}
+
+On a int\'er\^et en am\'eliorer le taux d'acceptation, c-\`a-d minimicer $\mathbb{E}(N)$. Comme $N\sim Geo(p)$, on a 
+$$\mathbb{E}(N) = \frac{1}{p} = Mc(b-a)$$
+Comme $c,\,b$ et $a$ sont fix\'es et $M\geq m$, on a
+$$\min \mathbb{E}(N) = mc(b-a)$$
+i.e. on choisit $M=m = \sup\limits_{x\in[a,b]}f(x)$.
+
+\item[5.] A-t-on besoin de connaitre la constante de normalisation $c$ pour impl\'ementer la m\'ethode?
+
+Pour $(4.)$ on peut voir que \c{c}a n'est pas neccesaire de conna\^itre $c$ pour faire la impl\'ementation de la m\'ethode.
+
+\end{enumerate}
+
+\section{Un escale en M\'esopotamie : la m\'ethode Ziggourat}
+
+Dans la m\'ethode de rejet pres\'ent\'ee ci-dessus, on simule un point al\'eatoire $(x,y)$ uniformement distribu\'e dans un ensemble ${\cal D}\supseteq {\cal C}$ et on utilise $(x,y)\in{\cal C}$ comme crit\`ere d'acceptation de $x$ en tant que tirage de la loi $cf$. Les principes pour le choix de l'ensemble de recouvrement ${\cal D}$ sont
+\begin{itemize}
+\item avoir une fa\c{c}on simple et rapide pour simuler le point $(x,y)$ dans ${\cal D}$;
+\item avoir une fa\c{c}on simple et rapide de tester si $(x,y)\in{\cal C}$;
+\item rendre $|{\cal C}|/|{\cal D}|$ (le taux d'acceptation de la m\'ethode) proche de $1$.
+\end{itemize}
+La m\'ethode Ziggourat propos\'ee par G. Marsaglia vise \`a satisfaire le plus possibles ces trois crit\`eres. Son usage n'est pas limit\'e \`a la loi gaussienne, la m\'ethode s'appliquant \`a toute densit\'e definie sur $\mathbb{R}_+$ d\'ecroissante.
+
+Dans la Figure $1$ (voir l'\'enonc\'e), ${\cal C}$ est l'ensemble sous la courbe $f(x) = e^{-x^2/2}$, et ${\cal D}$ est l'union de $8$ ensembles, $7$ rectangles et une bande de base $B$ qui contient la queue de la distribution. Les $8$ ensembles ont tous la m\^eme surface $v$. On note $0=x_0<x_1<\cdots<x_7$ les coordonn\'ees des extr\'emit\'es droites de chaque rectangle, et $R_i,\,i=1,\ldots,7$, les rectangles correspondant. On note $r=x_7$ l'extr\'emit\'e la plus \`a droite : la base $R_8$ est donc form\'ee par l'union du rectangle $[0,r]\times[0,f(r)]$ et de la queue de la distribution $T:=\{(x,y)\,:\,x>r,f(x)>y\}$.
+\\L'id\'ee de la m\'ethode est la suivante: on choisit au hasard un de $8$ ensembles avec probabilit\'e $1/8$. Si le rectangle $R_i, i\leq7$, est s\'electionn\'e, l'abscisse d'un point al\'eatoire $(x,y)$ uniformement distribu\'e sur $R_i$ a loi uniforme sur $[0,x_i]$. Si $x<x_{i-1}$, alors le point $(x,y)$ appartient nec\'essairement \`a ${\cal C}$: si cette condition est satisfaite, cela permet d'\'eviter la simulation de la coordonn\'ee $y$. Si la base $B$ est s\'electionn\'ee, on suit un proc\'ed\'e \`a part.
+\\Les quelques points suivants justifient la construction de la m\'ethode dans le cas d'un nombre $n$ quelconque d'ensembles $(R_i)_{i=1}^n$ (rectangles + base) constituant ${\cal D}$.
+
+
+\subsection{Loi uniforme sur ${\cal D}$:}
+
+\begin{enumerate}[(a)]
+\item Soit $\nu$ une variable uniforme sur l'ensemble $\{1,\ldots,n\}$ et $(U_1,\ldots,U_n)$ un vecteur al\'eatoire ind\'ependant de $\nu$ tel que $U_i\sim{\cal U}(R_i)$ pour tout $i$. Montrer que la variable uniforme $U_{\nu}$ a loi uniforme sur ${\cal D}$.
+
+Soit $A\in{\cal B}(\mathbb{R}^2)$, alors
+$$\mathbb{P}(U_{\nu}\in A) = \sum\limits_{i=1}^n\mathbb{P}(U_{\nu}\in A\,|\,\nu=i)\mathbb{P}(\nu=i)\stackrel{ind}{=}\sum\limits_{i=1}^n\frac{1}{n}\mathbb{P}(U_i\in A)\stackrel{def}{=}\sum\limits_{i=1}^n\frac{1}{n}\frac{\lambda_2(A\cap R_i)}{\lambda_2(R_i)}$$
+o\`u $\lambda_2$ est la mesure de Lebesgue en $\mathbb{R}^2$. En plus, comme $\lambda_2(R_i) = \lambda_2({\cal D})/n$, $\forall\,i\in\{1,\ldots,n\}$ on a
+$$\mathbb{P}(U_{\nu}\in A) = \frac{1}{\lambda_2({\cal D})}\sum\limits_{i=1}^n\lambda_2(A\cap R_i) = \frac{1}{\lambda_2({\cal D})}\lambda_2\left(\bigcup\limits_{i=1}^n(A\cap R_i)\right) = \frac{\lambda_2(A\cap{\cal D})}{\lambda_2({\cal D})}$$
+Alors, $U_{\nu}\sim{\cal U}({\cal D})$
+
+
+
+\item En d\'eduire que le proc\'ed\'e de simulation:
+
+\begin{center}
+On simule $\nu\sim{\cal U}(\{1,\ldots,n\})$;\\
+conditionnellement \`a $\nu=i$, on simule $U_i\sim{\cal U}(R_i)$
+\end{center}
+fournit un tirage de la loi uniforme sur ${\cal D}$.
+
+C'est direct depuis $(a)$.
+
+
+\item Proposer un m\'ethode de simulation de $\nu$ \`a partir d'une variable uniforme sur $[0,1]$.
+
+\begin{align*}
+\textbf{Simuler }U\sim{\cal U}([0,1]);\\
+\textbf{for }i=1,\ldots,n\\\textbf{if }U<\frac{i}{n}\,,\, \textbf{ return }i;
+\end{align*}
+
+C'est car si $U\sim{\cal U}([0,1])$, alors pour tout $i\in\{1,\ldots,n\}$
+$$\mathbb{P}\left(\frac{i-1}{n}<U<\frac{i}{n}\right) = \frac{i}{n}-\frac{i-1}{n} = \frac{1}{n}$$
+
+\end{enumerate}
+
+\subsection{Loi uniforme sur la base $R_n$:} 
+
+D\'emontrer que le proc\'ed\'e suivant:
+
+On pose $(x,y) = \left(\frac{vU_1}{f(r)},f(r)U2\right)$ o\`u $(U_1,U_2)$ est une v.a. uniforme sur $[0,1]^2$;\\si $x<r$, on accepte $(x,y)$; sinon, on simule une v.a. ind\'ependante de loi uniforme sur $T$
+\\fournit un tirage de la loi uniforme sur $R_n$.
+
+Le pr\`emier chose a v\'erifier est que $U_1\perp U_2$ (et par consecuent $x\perp y$), mais c'est facile car
+$$f_{U_1U_2}(u,v) = \mathbf{1}_{[0,1]^2}(u,v) = \mathbf{1}_{[0,1]}(u)\mathbf{1}_{[0,1]}(v) = f_{U_1}(u)f_{U_2}(v)$$
+Maintenant on d\'efine $R := \{(x,y)\in\mathbb{R}^2\,:\,x\in[0,r],y\in[0,f(r)]\}$, alors $R_n = R\sqcup T$.
+\\Soit $A\in{\cal B}(\mathbb{R}^2)$
+\begin{align*}
+\mathbb{P}((x,y)\in A) &= \mathbb{P}((x,y)\in A|x<r)\mathbb{P}(x<r) + \mathbb{P}((x,y)\in A|x\geq r)\mathbb{P}(x\geq r)
+\end{align*}
+C'est imm\'ediat que $\mathbb{P}(x<r) = \frac{\lambda_2(R)}{\lambda_2(R_n)}$ et $\mathbb{P}(x\geq r) = \frac{\lambda_2(T)}{\lambda_2(R_n)}$.\\La v.a. $(x,y)|x<r$ est telle que $y\sim{\cal U}([0,f(r)])$ et en $[0,r]$ $x|x<r\sim{\cal U}([0,r])$, alors $(x,y)|x<r\sim{\cal U}(R)$.
+\\De fa\c{c}con analogue la v.a. $(x,y)|x\geq r\sim{\cal U}(T)$, alors
+$$\mathbb{P}((x,y)\in A) = \frac{\lambda_2(A\cap R)}{\lambda_2(R_n)}+\frac{\lambda_2(A\cap T)}{\lambda_2(R_n)} = \frac{\lambda_2(A\cap R_n)}{\lambda_2(R_n)}$$
+On conclude que $(x,y)\sim{\cal U}(R_n)$
+
+\subsection{Loi uniforme sur la queue $T$:}
+\begin{enumerate}[(a)]
+\item Soit $Z$ une v.a. de densit\'e $cf$. Montrer que la loi conditionnelle de $Z$ sachant $\{Z>r\}$, not\'ee ${\cal L}(Z|Z>r)$, est la loi de l'abscisse d'un point $(x,y)$ de loi uniforme sur $T$.
+
+$$\mathbb{P}(Z<x|Z>r) = \begin{cases}0 &\text{si $x<r$}\\\displaystyle\frac{\int_r^xcf(t)\,dt}{\int_r^{\infty}cf(t)\,dt}&\text{si $x\geq r$}\end{cases}$$
+Aussi, si $(X,Y)\sim{\cal U}(T)$ on a pour $x<r$ que $f_X(x)=0$  et pour $x\geq r$ que
+$$f_X(x) = \int_{\mathbb{R}}f_{XY}(x,y)\,dy = \int_{\mathbb{R}}\frac{\mathbf{1}_{T}(x,y)}{\lambda_2(T)}dy = \int_0^{f(x)}\frac{dy}{\lambda_2(T)} = \frac{f(x)}{\lambda_2(T)}$$
+Alors, $$\mathbb{P}(X<x) = \int_{-\infty}^x\frac{f(t)\mathbf{1}_{\{x>r\}}(t)}{\lambda_2(T)} = \begin{cases}0 &\text{si $x<r$}\\\displaystyle\int_r^x\frac{f(t)}{\lambda_2(T)}dt&\text{si $x\geq r$}\end{cases}$$
+On conclude en remarquent $\lambda_2(T) = \displaystyle\int_r^{\infty}f(x)\,dx$.
+
+
+\item Soit $(U_1^i,U_2^i)_{i\geq0}$ une suite i.i.d. de variables uniformes sur $[0,1]^2$. On pose
+$$x_i = -\frac{1}{r}\ln(U_1^i)\,,\,y_i = -\ln(U_2^i)$$
+et $I = \min\{i\geq1\,:\,2y_i>x_i^2\}$. D\'emontrer que $r+x_I$ est distribu\'e selon la loi ${\cal L}(Z|Z>r)$.
+
+Pour $(1.1.1)$ $X_i = -\frac{1}{r}\ln(U_1^i)\stackrel{iid}{\sim}{\cal E}(r)$ et $Y_i = -\ln(U_2^i)\stackrel{iid}{\sim}{\cal E}(1)$ avec $X_i\perp X_j$, $Y_i\perp Y_j$ et $X_i\perp Y_j$, pour tout $i,j\in\mathbb{N}$.
+\\Si $p = \mathbb{P}(2Y_i>X_i^2)$ on a, pour $(1.2.1)$, que $\mathbb{P}(I=n) = p(1-p)^{n-1}$. Alors si $x<r$, $\mathbb{P}(r+X_I<x) = 0$, si $x\geq r$ on a que
+\begin{align*}
+\mathbb{P}(r+X_I<x) &= \sum\limits_{n\geq1}\mathbb{P}(\{X_I<x-r\}\cap\{I=n\})\\
+&= \sum\limits_{n\geq1}\mathbb{P}(\{X_i<x-r\}\cap\{I=n\})\\
+&= \mathbb{P}(X_1<x-r\,,\,2Y_1>X_1^2) + \sum\limits_{n\geq2}\mathbb{P}\left(\{X_n<x-r\,,\,2Y_n>X_n^2\}\cap\bigcap\limits_{i=1}^{n-1}\{2Y_i<X_i^2\}\right)\\
+&\stackrel{iid}{=}\mathbb{P}(X_1<x-r\,,\,2Y_1>X_1^2)\left[ 1 + \sum\limits_{n\geq2}(1-p)^{n-1} \right]\\
+&= \frac{1}{p}\mathbb{P}(X_1<x-r\,,\,2Y_1>X_1^2)
+\end{align*}
+
+Il reste le calcul de $p$ et $\mathbb{P}(X_1<x-r\,,\,2Y_1>X_1^2)$:
+
+\begin{align*}
+p &= \int_{\mathbb{R}}\mathbb{P}(2Y_1 > X_1^2|X_1=k)f_{X_1}(k)\,dk\\
+&= \int_0^{\infty}\mathbb{P}(2Y_1 > k^2)re^{-rk}\,dk\\
+&= \int_0^{\infty}re^{-k^2/2}e^{-rk}\,dk\\
+&= re^{r^2/2}\int_0^{\infty}e^{-(k+r)^2/2}\,dk\\
+&= re^{r^2/2}\int_r^{\infty}e^{-k^2/2}\,dk
+\end{align*}
+
+\begin{align*}
+\mathbb{P}(X_1<x-r\,,\,2Y_1>X_1^2) &= \int_{\mathbb{R}}\mathbb{P}(X_1<x-r\,,\,2Y_1>X_1^2|X_1=k)f_{X_1}(k)\,dk\\
+&= \int_0^{\infty}\mathbb{P}(k<x-r\,,\,2Y_1>k^2)re^{-rk}\,dk\\
+&= \int_0^{x-r}\mathbb{P}(2Y_1>k^2)re^{-rk}\,dk\\
+&= re^{r^2/2}\int_0^{x-r}e^{-(k+r)^2/2}\,dk\\
+&= re^{r^2/2}\int_r^xe^{-k^2/2}\,dk\\
+\end{align*}
+On a d\'emontr\'e que $$\mathbb{P}(r+X_I<x) = \displaystyle\frac{\displaystyle\int_r^xe^{-k^2/2\,dk}}{\displaystyle\int_r^{\infty}e^{-k^2/2}\,dk}$$
+i.e. $r+X_I\sim {\cal L}(Z|Z>r)$ avec $Z$ distribu\'ee selon la densit\'e $cf(x) = \sqrt{\frac{2}{\pi}}e^{-x^2/2}\mathbf{1}_{\{x>0\}}$
+
+\end{enumerate}
+
+\textbf{L'algorithme}
+\\On suppose d'avoir d\'ej\`a determin\'e les points $x_i$ qui forment les bases des rectangles (voir section "Impl\'ementation" ci-dessous). Pour tout $i=1,\ldots,n-1$ on pose $k_i = x_{i-1}/x_i$ et pour $i=n$ on pose $k_n = rf(r)/v$ et $x_n = v/f(r)$. Expliquez pourquoi l'algorithme suivant fournit un tirage de la loi de densit\'e $\sqrt{\frac{2}{\pi}}e^{-x^2/2}\mathbf{1}_{\{x>0\}}.$
+
+Si on pose
+\begin{align*}
+C_1 &:= \{U<k_{\nu}\}\\
+C_2 &:= \{U>k_{\nu}\,,\, \nu=n\}\\
+C_3 &:= \{U>k_{\nu}\,,\, \nu\neq n \,,\,f(x_i)+(f(x_{i-1})-f(x_i))U_2<f(x)\}
+\end{align*}
+on peut \'ecrir l'algorithme comme 
+$$A = Ux_{\nu}\mathbf{1}_{C_1}+T\mathbf{1}_{C_2} + Ux_{\nu}\mathbf{1}_{C_3} + A(1-\mathbf{1}_{C_1\cup C_2\cup C_3})$$
+D'apr\`es les exercises $\mathbf{2.1}$, $\mathbf{2.2}$, $\mathbf{2.3}$ on a le r\'esultat.
+\\\textbf{Algorithme Ziggourat}
+\begin{enumerate}
+\item G\'en\'erer un entier $\nu$ uniformement sur $\{1,\ldots,n\}$ et une variable ind\'ependante $U$ uniforme sur $[0,1]$. Poser $x = Ux_{\nu}$.
+\item Si $U<k_{\nu}$, return $x$.
+\item Si $\nu = n$, simuler $x$ selon la loi ${\cal L}(Z|Z>r)$. Return $x$.
+\item G\'en\'erer $U_2$ uniforme sur $[0,1]$. Si $f(x_i)+(f(x_{i-1})-f(x_i))U_2<f(x)$, return $x$.
+\item Retourner \`a l'\'etape $1$.
+\end{enumerate}
+La commande "return $x$" arr\^ete l'algorithme et fournit la valeur simul\'ee : l'\'etape $3$ n'est donc execut\'ee que si l'\'etape $2$ ne l'est pas; l'\'etape $4$ n'est execut\'ee que si les \'etapes $2$ et $3$ ne le sont pas.
+\begin{itemize}
+\item[Q:] Lorsque $n$ est grand, \`a quelle \'etape vous attendez-vous que l'algorithme s'arr\^ete avec une grande probabilit\'e?
+
+\textbf{R:} \'A l'\'etape $\mathbf{2}$, car si $n$ est grand $k_i \approx 1, pour i\in\{1,...,n-1\}$ (i.e. $x_{i-1}\approx x_i$). Donc
+$$\mathbb{P}(U<k_i)\approx 1$$
+
+
+
+\end{itemize}
+
+
+\textbf{Impl\'ementation (une Ziggourat avec beaucoup de marches)}
+\\On se propose d'impl\'ementer l'algorithme en recouvrant ${\cal C}$ avec $n=256$ ensembles de surface commune $v$.
+\begin{enumerate}
+\item[ ] Calcul off-line des $x_i$: les extr\'emit\'es des rectangles $x_1<x_2<\ldots<x_{255}$ sont d\'et\'ermin\'es par la cha\^ine d'\'equations
+$$x_i(f(x_{i-1})-f(x_i)) = v\text{, pour }i=1,\ldots,255\text{ avec }v=rf(r)+\int_r^{\infty}f(y)dy.$$
+\end{enumerate}
+Au lieu de fixer une valeur de $v$, on peut rechercher la valeur de $r$ en utilisant la fonction
+
+\begin{align*}
+\text{Function }\mathbf{z = z(r)}\\
+x_{255} = r;\;\;rf(r)+\int_{\infty}f(y)dy;\\
+\textbf{Pour }i \text{ de } 254 \text{ \`a } 1 \textbf{ faire}\\
+x_i = f^{-1}(v/x_{i+1}+f(x_{i+1}))\\
+\textbf{fin Pour;}\\
+\textbf{return }v-x_1(1-f(x_1))
+\end{align*}
+
+Le probl\`eme est de trouver $r$ tel que $\mathbf{z(r)} = 0$. Pour $f(x) = e^{-x^2/2}$, la valeur $r=3.6541528853610088$ donne $\mathbf{z(r)} = 0$. \`A partir de cette valeur de $r = x_{255}$, las autres $x_i$ peuvent \^etre calcul\'es en inversant $f$ dans $x_i = f^{-1}(v/x_{i+1}+f(x_{i+1}))$. La valeur correspondante pour la surface des ensembles est $v = 0.004928673233$, soit un taux d'acceptation de $99.3\%$.
+\begin{itemize}
+\item[Q:] Montrer qu'un tirage de la loi gaussienne centr\'ee reduite est obtenu en rajoutant un signe $\pm$ tir\'e au hasard de fa\c{c}on ind\'ependante.
+\end{itemize}
+
+\textbf{Simulation}
+\begin{itemize}
+\item Impl\'ementer un programme \emph{Scilab} qui simule un couple de Gaussiennes ind\'ependantes par la m\'ethode de Box-M\"uller.
+\item Impl\'ementer l'algorithme Ziggourat pour $n=256$ rectanles + une bande de base. Calculer une fois pour toutes les points $x_i$ comme d\'ecrit ci-dessus et stocker dans un vecteur les valeurs des coefficients $k_i$. On conseille d'impl\'ementer l'algorithme Ziggourat dans un code \emph{Scilab} separ\'e.
+\item Comparer la vitesse d'execution des deux algorithmes en tirant un grand nombre de Gaussiennes (de l'ordre de $10^9$) et en comparant les temps \'ecoul\'es.
+\item Utiliser les deux m\'ethodes de simulation pour construire un estimateur de la moyenne $\mathbb{E}[X]$ et du moment d'ordre deux $\mathbb{E}[X^2]$ d'une variable gaussienne centr\'ee r\'eduite $X$. On fournira le r\'esultat avec l'intervalle de confiance asymptotique \`a $95\%$ donn\'e par le Th\'eor\`eme central limite.
+\end{itemize}
+
+
+\end{document}
