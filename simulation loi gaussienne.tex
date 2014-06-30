@@ -28,14 +28,15 @@ La m\'ethode de Box-M\"uller est une technique repandue pour la simulation de ga
 \begin{enumerate}
 \item Quelle est la loi de $Z = -\frac{1}{\lambda}\ln(U)$, pour $\lambda>0$?
 
-Soit $h$ une fonction continu\'ee et born\'ee, alors
+Soit $h$ une fonction continue et born\'ee, alors
 $$\mathbb{E}(h(Z)) = \int_{\mathbb{R}}h(-\frac{1}{\lambda}\ln(u))f_U(u)\,du = \int_{\mathbb{R}}h(-\frac{1}{\lambda}\ln(u))\mathbf{1}_{[0,1]}(u)\,du = \int_{\mathbb{R}}h(v)\lambda e^{-\lambda v}\mathbf{1}_{\{v>0\}}(v)\,dv$$
-En le dernier pas on a utilic\'e le changement de variable $v = -\frac{1}{\lambda}\ln(u)$.
+
+Dans la derni\`ere egalit\'e on a utilic\'e le changement de variable $v = -\frac{1}{\lambda}\ln(u)$.
 \\On conclude que $f_Z(z) = \lambda e^{-\lambda z}\mathbf{1}_{\{z>0\}}$, i.e. $Z\sim {\cal E}(\lambda)$.
 
 \item Soit $R$ une variable al\'eatoire exponentielle de param\`etre $1/2$ et $\Theta$ une variable al\'eatoire uniforme sur $[0,2\pi]$ ind\'ependantes. Quelle est la loi de $(X,Y) = (\sqrt{R}\cos(\Theta),\sqrt{R}\sin(\Theta))$? D\'etaillez votre r\'eponse.
 
-Soit $h$ une fonction continu\'ee et born\'ee, alors
+Soit $h$ une fonction continue et born\'ee, alors
 \begin{align*}
 \mathbb{E}(h(X,Y)) &\underbrace{=}_{indep} \int_{\mathbb{R}^2}h(\sqrt{r}\cos(\theta),\sqrt{r}\sin(\theta))f_R(r)f_{\Theta}(\theta)\,d(r,\theta)\\
 &= \int_{\mathbb{R}^2}h(\sqrt{r}\cos(\theta),\sqrt{r}\sin(\theta))\frac{1}{2}e^{-r/2}\mathbf{1}_{\{r>0\}}(r)\frac{\mathbf{1}_{[0,2\pi](\theta)}}{2\pi}\,d(r,\theta)
@@ -65,7 +66,7 @@ Soit $f$ une fonction mesurable positive et int\'egrable sur un intervalle $[a,b
 \begin{enumerate}
 \item Quelle est la loi de $N$?
 
-Si on d\'efine $p = \mathbb{P}((X_1,Y_1)\in{\cal C})$, on a que pour $n\in\mathbb{N}$
+Si on d\'efinit $p = \mathbb{P}((X_1,Y_1)\in{\cal C})$, on a que pour $n\in\mathbb{N}$
 $$\mathbb{P}(N=n) = \mathbb{P}\left(\bigcap\limits_{i=1}^{n-1}\{(X_i,Y_i)\not\in{\cal C}\}\cap \{(X_n,Y_n)\in{\cal C}\}\right) \stackrel{iid}{=} p(1-p)^{n-1}$$
 Alors, $N\sim Geo(p)$
 
@@ -116,7 +117,7 @@ On conclude que la densit\'e de $\{X|(X,Y)\in{\cal C}\}$ est $cf$
 \textbf{Retourner } X;
 \end{align*}
 
-On a int\'er\^et en am\'eliorer le taux d'acceptation, c-\`a-d minimicer $\mathbb{E}(N)$. Comme $N\sim Geo(p)$, on a 
+On a int\'er\^et en am\'eliorer le taux d'acceptation, c'est-\`a-dire minimiser $\mathbb{E}(N)$. Comme $N\sim Geo(p)$, on a 
 $$\mathbb{E}(N) = \frac{1}{p} = Mc(b-a)$$
 Comme $c,\,b$ et $a$ sont fix\'es et $M\geq m$, on a
 $$\min \mathbb{E}(N) = mc(b-a)$$
@@ -124,7 +125,7 @@ i.e. on choisit $M=m = \sup\limits_{x\in[a,b]}f(x)$.
 
 \item[5.] A-t-on besoin de connaitre la constante de normalisation $c$ pour impl\'ementer la m\'ethode?
 
-Pour $(4.)$ on peut voir que \c{c}a n'est pas neccesaire de conna\^itre $c$ pour faire la impl\'ementation de la m\'ethode.
+Pour $(4.)$ on peut voir que c'est n'est pas neccesaire de conna\^itre $c$ pour faire la impl\'ementation de la m\'ethode.
 
 \end{enumerate}
 
@@ -174,7 +175,7 @@ C'est direct depuis $(a)$.
 \textbf{for }i=1,\ldots,n\\\textbf{if }U<\frac{i}{n}\,,\, \textbf{ return }i;
 \end{align*}
 
-C'est car si $U\sim{\cal U}([0,1])$, alors pour tout $i\in\{1,\ldots,n\}$
+Comme $U\sim{\cal U}([0,1])$, alors pour tout $i\in\{1,\ldots,n\}$
 $$\mathbb{P}\left(\frac{i-1}{n}<U<\frac{i}{n}\right) = \frac{i}{n}-\frac{i-1}{n} = \frac{1}{n}$$
 
 \end{enumerate}
@@ -186,7 +187,8 @@ D\'emontrer que le proc\'ed\'e suivant:
 On pose $(x,y) = \left(\frac{vU_1}{f(r)},f(r)U2\right)$ o\`u $(U_1,U_2)$ est une v.a. uniforme sur $[0,1]^2$;\\si $x<r$, on accepte $(x,y)$; sinon, on simule une v.a. ind\'ependante de loi uniforme sur $T$
 \\fournit un tirage de la loi uniforme sur $R_n$.
 
-Le pr\`emier chose a v\'erifier est que $U_1\perp U_2$ (et par consecuent $x\perp y$), mais c'est facile car
+La pr\`emiere chose a v\'erifier est que $U_1\perp U_2$ (et par conséquent $x\perp y$)
+
 $$f_{U_1U_2}(u,v) = \mathbf{1}_{[0,1]^2}(u,v) = \mathbf{1}_{[0,1]}(u)\mathbf{1}_{[0,1]}(v) = f_{U_1}(u)f_{U_2}(v)$$
 Maintenant on d\'efine $R := \{(x,y)\in\mathbb{R}^2\,:\,x\in[0,r],y\in[0,f(r)]\}$, alors $R_n = R\sqcup T$.
 \\Soit $A\in{\cal B}(\mathbb{R}^2)$
@@ -194,7 +196,7 @@ Maintenant on d\'efine $R := \{(x,y)\in\mathbb{R}^2\,:\,x\in[0,r],y\in[0,f(r)]\}
 \mathbb{P}((x,y)\in A) &= \mathbb{P}((x,y)\in A|x<r)\mathbb{P}(x<r) + \mathbb{P}((x,y)\in A|x\geq r)\mathbb{P}(x\geq r)
 \end{align*}
 C'est imm\'ediat que $\mathbb{P}(x<r) = \frac{\lambda_2(R)}{\lambda_2(R_n)}$ et $\mathbb{P}(x\geq r) = \frac{\lambda_2(T)}{\lambda_2(R_n)}$.\\La v.a. $(x,y)|x<r$ est telle que $y\sim{\cal U}([0,f(r)])$ et en $[0,r]$ $x|x<r\sim{\cal U}([0,r])$, alors $(x,y)|x<r\sim{\cal U}(R)$.
-\\De fa\c{c}con analogue la v.a. $(x,y)|x\geq r\sim{\cal U}(T)$, alors
+\\De fa\c{c}on analogue la v.a. $(x,y)|x\geq r\sim{\cal U}(T)$, alors
 $$\mathbb{P}((x,y)\in A) = \frac{\lambda_2(A\cap R)}{\lambda_2(R_n)}+\frac{\lambda_2(A\cap T)}{\lambda_2(R_n)} = \frac{\lambda_2(A\cap R_n)}{\lambda_2(R_n)}$$
 On conclude que $(x,y)\sim{\cal U}(R_n)$
 
@@ -206,7 +208,7 @@ $$\mathbb{P}(Z<x|Z>r) = \begin{cases}0 &\text{si $x<r$}\\\displaystyle\frac{\int
 Aussi, si $(X,Y)\sim{\cal U}(T)$ on a pour $x<r$ que $f_X(x)=0$  et pour $x\geq r$ que
 $$f_X(x) = \int_{\mathbb{R}}f_{XY}(x,y)\,dy = \int_{\mathbb{R}}\frac{\mathbf{1}_{T}(x,y)}{\lambda_2(T)}dy = \int_0^{f(x)}\frac{dy}{\lambda_2(T)} = \frac{f(x)}{\lambda_2(T)}$$
 Alors, $$\mathbb{P}(X<x) = \int_{-\infty}^x\frac{f(t)\mathbf{1}_{\{x>r\}}(t)}{\lambda_2(T)} = \begin{cases}0 &\text{si $x<r$}\\\displaystyle\int_r^x\frac{f(t)}{\lambda_2(T)}dt&\text{si $x\geq r$}\end{cases}$$
-On conclude en remarquent $\lambda_2(T) = \displaystyle\int_r^{\infty}f(x)\,dx$.
+On conclude en remarquant $\lambda_2(T) = \displaystyle\int_r^{\infty}f(x)\,dx$.
 
 
 \item Soit $(U_1^i,U_2^i)_{i\geq0}$ une suite i.i.d. de variables uniformes sur $[0,1]^2$. On pose
@@ -298,6 +300,8 @@ Le probl\`eme est de trouver $r$ tel que $\mathbf{z(r)} = 0$. Pour $f(x) = e^{-x
 \begin{itemize}
 \item[Q:] Montrer qu'un tirage de la loi gaussienne centr\'ee reduite est obtenu en rajoutant un signe $\pm$ tir\'e au hasard de fa\c{c}on ind\'ependante.
 \end{itemize}
+
+\c{C}a découle du fait qu'une gaussienne central reduite est sym\'etrique par rapport \`a zero.
 
 \textbf{Simulation}
 \begin{itemize}
